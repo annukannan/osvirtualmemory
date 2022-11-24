@@ -58,3 +58,36 @@ page_number, int frame_pool[POOLMAX],int *frame_cnt, int current_timestamp){
         return temp_frame;
     }
 }
+
+int count_page_faults_fifo(struct PTE page_table[TABLEMAX],int table_cnt, int
+refrence_string[REFERENCEMAX],int reference_cnt,int frame_pool[POOLMAX],int
+                           frame_cnt) {
+    int page_fault = 0;
+    return page_fault;
+}
+
+int process_page_access_lru(struct PTE page_table[TABLEMAX],int *table_cnt, int
+page_number, int frame_pool[POOLMAX],int *frame_cnt, int current_timestamp){
+    int temp_frame = 0;
+    return temp_frame;
+}
+
+int count_page_faults_lru(struct PTE page_table[TABLEMAX],int table_cnt, int
+refrence_string[REFERENCEMAX],int reference_cnt,int frame_pool[POOLMAX],int
+                          frame_cnt){
+    int page_fault = 0;
+    return page_fault;
+}
+
+int process_page_access_lfu(struct PTE page_table[TABLEMAX],int *table_cnt, int
+page_number, int frame_pool[POOLMAX],int *frame_cnt, int current_timestamp){
+    int temp_frame = 0;
+    return temp_frame;
+}
+
+int count_page_faults_lfu(struct PTE page_table[TABLEMAX],int table_cnt, int
+refrence_string[REFERENCEMAX],int reference_cnt,int frame_pool[POOLMAX],int
+                          frame_cnt){
+    int page_fault = 0;
+    return page_fault;
+}
