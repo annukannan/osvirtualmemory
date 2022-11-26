@@ -6,20 +6,39 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+/*
+struct PTE {
+  int is_valid;
+  int frame_number;
+  int arrival_timestamp;
+  int last_access_timestamp;
+  int reference_count;
+};
+*/
 
 int process_page_access_fifo(struct PTE page_table[TABLEMAX],int *table_cnt, int
 page_number, int frame_pool[POOLMAX],int *frame_cnt, int current_timestamp){
-    if(page_table[page_number].is_valid == true){ // checking if the page table is already in memory
+    if(page_table[page_number].is_valid == 1){ // checking if the page table is already in memory
         page_table[page_number].reference_count += 1;
         page_table[page_number].last_access_timestamp = current_timestamp;
         return page_table[page_number].frame_number;
     }
-    else if ((page_table[page_number].is_valid == false) && (*frame_cnt > 0)){ // checking if there is any available frames
-        page_table[page_number].frame_number = frame_pool[*frame_cnt-1];
+    else if ((page_table[page_number].is_valid == 0) && (*frame_cnt > 0)){ // checking if there is any available frames
+        /*page_table[page_number].frame_number = frame_pool[*frame_cnt-1];
         *frame_cnt -= 1;
         page_table[page_number].last_access_timestamp = current_timestamp;
         page_table[page_number].reference_count = 1;
         page_table[page_number].is_valid = true;
+        return page_table[page_number].frame_number;*/
+        int next_frame = frame_pool[*frame_cnt - 1];
+        frame_pool[*frame_cnt - 1] = frame_pool[*frame_cnt];
+        *frame_cnt = *frame_cnt - 1;
+        page_table[page_number].is_valid = 1;
+        page_table[page_number].frame_number = frame_pool[*frame_cnt];
+        page_table[page_number].arrival_timestamp = current_timestamp;
+        page_table[page_number].last_access_timestamp = current_timestamp;
+        page_table[page_number].reference_count = 1;
+        page_table[page_number].frame_number = next_frame;
         return page_table[page_number].frame_number;
     } else { // otherwise the page in memory is replaced
         bool flag_first = false;
@@ -27,13 +46,13 @@ page_number, int frame_pool[POOLMAX],int *frame_cnt, int current_timestamp){
         int temp_frame = 0;
         int temp_arrival_stemp = 0;
         for (int index = 0; index < *table_cnt ; index++){
-            if((page_table[index].is_valid == true) && (flag_first== false)){
+            if((page_table[index].is_valid == 1) && (flag_first== false)){
                 temp_index = index;
                 temp_frame = page_table[index].frame_number;
                 temp_arrival_stemp = page_table[index].arrival_timestamp;
                 flag_first = true;
             }
-            else if ((page_table[index].is_valid == true) && (temp_arrival_stemp > page_table[index].arrival_timestamp) && (flag_first== true)){
+            else if ((page_table[index].is_valid == 1) && (temp_arrival_stemp > page_table[index].arrival_timestamp) && (flag_first== true)){
                 temp_arrival_stemp = page_table[index].arrival_timestamp;
                 temp_index = index;
                 temp_frame = page_table[index].frame_number;
@@ -44,10 +63,10 @@ page_number, int frame_pool[POOLMAX],int *frame_cnt, int current_timestamp){
             page_table[temp_index].reference_count = 0;
             page_table[temp_index].last_access_timestamp = 0;
             page_table[temp_index].frame_number = -1;
-            page_table[temp_index].is_valid = false;
+            page_table[temp_index].is_valid = 0;
             page_table[page_number].frame_number = temp_frame;
             page_table[page_number].arrival_timestamp = current_timestamp;
-            page_table[page_number].is_valid = true;
+            page_table[page_number].is_valid = 1;
             page_table[page_number].last_access_timestamp = current_timestamp;
             page_table[page_number].reference_count = 1;
         }
@@ -60,32 +79,32 @@ refrence_string[REFERENCEMAX],int reference_cnt,int frame_pool[POOLMAX],int
                            frame_cnt) {
     int timestamp = 1, page_fault = 0;
     for(int i = 0; i < reference_cnt; i++){
-        if (page_table[refrence_string[i]].is_valid == true){
+        if (page_table[refrence_string[i]].is_valid == 1){
             page_table[refrence_string[i]].last_access_timestamp = timestamp;
             page_table[refrence_string[i]].reference_count += 1;
         }
-        else if ((page_table[refrence_string[i]].is_valid == false) && (frame_cnt > 0)){
+        else if ((page_table[refrence_string[i]].is_valid == 0) && (frame_cnt > 0)){
             page_table[refrence_string[i]].frame_number = frame_pool[frame_cnt-1];
             page_table[refrence_string[i]].last_access_timestamp = timestamp;
             page_table[refrence_string[i]].reference_count += 1;
-            page_table[refrence_string[i]].is_valid = true;
+            page_table[refrence_string[i]].is_valid = 1;
             frame_cnt -= 1;
             page_fault += 1;
         }
-        else if((page_table[refrence_string[i]].is_valid == false) && (frame_cnt == 0)){
+        else if((page_table[refrence_string[i]].is_valid == 0) && (frame_cnt == 0)){
             page_fault += 1;
             bool flag_first = false;
             int temp_index = 0;
             int temp_frame = 0;
             int temp_arrival_stemp = 0;
             for (int index = 0; index < table_cnt ; index++){
-                if((page_table[index].is_valid == true) && (flag_first== false)){
+                if((page_table[index].is_valid == 1) && (flag_first== false)){
                     temp_index = index;
                     temp_frame = page_table[index].frame_number;
                     temp_arrival_stemp = page_table[index].arrival_timestamp;
                     flag_first = true;
                 }
-                else if ((page_table[index].is_valid == true) && (temp_arrival_stemp > page_table[index].arrival_timestamp) && (flag_first== true)){
+                else if ((page_table[index].is_valid == 1) && (temp_arrival_stemp > page_table[index].arrival_timestamp) && (flag_first== true)){
                     temp_arrival_stemp = page_table[index].arrival_timestamp;
                     temp_index = index;
                     temp_frame = page_table[index].frame_number;
@@ -96,10 +115,10 @@ refrence_string[REFERENCEMAX],int reference_cnt,int frame_pool[POOLMAX],int
                 page_table[temp_index].reference_count = 0;
                 page_table[temp_index].last_access_timestamp = 0;
                 page_table[temp_index].frame_number = -1;
-                page_table[temp_index].is_valid = false;
+                page_table[temp_index].is_valid = 0;
                 page_table[refrence_string[i]].frame_number = temp_frame;
                 page_table[refrence_string[i]].arrival_timestamp = temp_arrival_stemp;
-                page_table[refrence_string[i]].is_valid = true;
+                page_table[refrence_string[i]].is_valid = 1;
                 page_table[refrence_string[i]].last_access_timestamp = timestamp;
                 page_table[refrence_string[i]].reference_count = 1;
             }
