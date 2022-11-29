@@ -37,7 +37,7 @@ int process_page_access_fifo(struct PTE page_table[TABLEMAX],int *table_cnt, int
     }
 
     int index = -1;
-    int arrival_timestamp = INT_MAX;
+    int arrival_timestamp = 2147483647; //INT_MAX
     for (int i = 0; i < *table_cnt; i++)
     {
         if (page_table[i].is_valid &&
@@ -86,7 +86,7 @@ int count_page_faults_fifo(struct PTE page_table[TABLEMAX],int table_cnt, int re
         }
 
         int index = -1;
-        int arrival_timestamp = INT_MAX;
+        int arrival_timestamp = 2147483647; //INT_MAX;
         for (int j = 0; j < table_cnt; j++)
         {
             if (page_table[j].is_valid &&
