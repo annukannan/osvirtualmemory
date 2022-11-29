@@ -201,15 +201,109 @@ reference_string[REFERENCEMAX],int reference_cnt,int frame_pool[POOLMAX],int
 
 int process_page_access_lfu(struct PTE page_table[TABLEMAX],int *table_cnt, int
 page_number, int frame_pool[POOLMAX],int *frame_cnt, int current_timestamp){
-    int temp_frame = 0;
-    return temp_frame;
+    if (page_table[page_number].is_valid)
+    {
+        page_table[page_number].last_access_timestamp = current_timestamp;
+        page_table[page_number].reference_count++;
+        return page_table[page_number].frame_number;
+    }
+
+    if (*frame_cnt > 0)
+    {
+        page_table[page_number].is_valid = 1;
+        page_table[page_number].frame_number = frame_pool[--(*frame_cnt)];
+        page_table[page_number].arrival_timestamp = current_timestamp;
+        page_table[page_number].last_access_timestamp = current_timestamp;
+        page_table[page_number].reference_count = 1;
+        return page_table[page_number].frame_number;
+    }
+
+    int index = -1;
+    int reference_count = 2147483647; //INT_MAX;
+    int arrival_timestamp = 2147483647; //INT_MAX;
+    for (int i = 0; i < *table_cnt; i++)
+    {
+        if (page_table[i].is_valid &&
+            page_table[i].reference_count <= reference_count)
+        {
+            reference_count = page_table[i].reference_count;
+            if (page_table[i].arrival_timestamp < arrival_timestamp)
+            {
+                arrival_timestamp = page_table[i].arrival_timestamp;
+                index = i;
+            }
+        }
+    }
+    page_table[page_number].frame_number = page_table[index].frame_number;
+    page_table[page_number].is_valid = 1;
+    page_table[page_number].arrival_timestamp = current_timestamp;
+    page_table[page_number].last_access_timestamp = current_timestamp;
+    page_table[page_number].reference_count = 1;
+
+    page_table[index] = (PTE){0, -1, -1, -1, -1};
+
+    return page_table[page_number].frame_number;
 }
 
 int count_page_faults_lfu(struct PTE page_table[TABLEMAX],int table_cnt, int
-refrence_string[REFERENCEMAX],int reference_cnt,int frame_pool[POOLMAX],int
+reference_string[REFERENCEMAX],int reference_cnt,int frame_pool[POOLMAX],int
                           frame_cnt){
-    int page_fault = 0;
-    return page_fault;
+    int faults = 0;
+    int timestamp = 1000;
+    for (int i = 0; i < reference_cnt; i++)
+    {
+        int page_number = reference_string[i];
+
+        if (page_table[page_number].is_valid)
+        {
+            page_table[page_number].last_access_timestamp = timestamp + i;
+            page_table[page_number].reference_count++;
+            continue;
+        }
+
+        faults++;
+
+        if (frame_cnt > 0)
+        {
+            page_table[page_number].is_valid = 1;
+            page_table[page_number].frame_number = frame_pool[--frame_cnt];
+            page_table[page_number].arrival_timestamp = timestamp + i;
+            page_table[page_number].last_access_timestamp = timestamp + i;
+            page_table[page_number].reference_count = 1;
+            continue;
+        }
+
+        int reference_count = 2147483647; //INT_MAX;
+        for (int j = 0; j < table_cnt; j++)
+        {
+            if (page_table[j].is_valid &&
+                page_table[j].reference_count < reference_count)
+            {
+                reference_count = page_table[j].reference_count;
+            }
+        }
+        int index = -1;
+        int arrival_timestamp = 2147483647; //INT_MAX;
+        for (int j = 0; j < table_cnt; j++)
+        {
+            if (page_table[j].is_valid &&
+                page_table[j].reference_count == reference_count &&
+                page_table[j].arrival_timestamp < arrival_timestamp)
+            {
+                arrival_timestamp = page_table[j].arrival_timestamp;
+                index = j;
+            }
+        }
+        page_table[page_number].frame_number = page_table[index].frame_number;
+        page_table[page_number].is_valid = 1;
+        page_table[page_number].arrival_timestamp = timestamp + i;
+        page_table[page_number].last_access_timestamp = timestamp + i;
+        page_table[page_number].reference_count = 1;
+
+        page_table[index] = (PTE){0, -1, -1, -1, -1};
+    }
+
+    return faults;
 }
 
 /*
@@ -279,3 +373,4 @@ int main(int argc, char **argv)
     return 0;
 }
 */
+
